@@ -17,11 +17,11 @@ CudaTimer::~CudaTimer()
   cudaEventDestroy(stop_);
 }
 
-void CudaTimer::start()
+void CudaTimer::start() const
 {
   cudaEventRecord(start_);
 }
-float CudaTimer::stop()
+float CudaTimer::stop() const
 {
   cudaEventRecord(stop_);
   cudaEventSynchronize(stop_);

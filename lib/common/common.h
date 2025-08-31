@@ -13,10 +13,10 @@ class CudaTimer
 public:
   CudaTimer();
   ~CudaTimer();
-  void start();
-  float stop(); // returns elapsed ms
+  void start() const;
+  [[nodiscard]] float stop() const; // returns elapsed ms
 private:
-  cudaEvent_t start_, stop_;
+  cudaEvent_t start_{}, stop_{};
 };
 
 // Convenience launcher
@@ -26,7 +26,7 @@ float timeKernel(
     dim3 grid,
     dim3 block,
     size_t shared = 0,
-    cudaStream_t s = 0,
+    cudaStream_t s = nullptr,
     Args&&... args)
 {
   CudaTimer t;

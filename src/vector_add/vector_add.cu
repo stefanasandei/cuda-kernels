@@ -1,45 +1,34 @@
-#define ARR_LEN(x) (sizeof(x) / sizeof(int))
-
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include <stdio.h>
-
-#include <common.h>
-
-__global__ void vectorAdd(int* a, int* b, int* c)
+__global__ void vectorAdd(int* a, int* b, int* c, int size)
 {
-  int idx = threadIdx.x;
-
-  c[idx] = a[idx] + b[idx];
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (idx < size) {
+    c[idx] = a[idx] + b[idx];
+  }
 }
 
-int vec()
+void vectorAddHost(const int* h_a, const int* h_b, int* h_c, int size)
 {
-  int a[] = {1, 2, 3};
-  int b[] = {4, 5, 6};
-  int c[ARR_LEN(a)] = {0};
+  int* d_a = nullptr;
+  int* d_b = nullptr;
+  int* d_c = nullptr;
 
-  int* cudaA = nullptr;
-  int* cudaB = nullptr;
-  int* cudaC = nullptr;
+  cudaMalloc(&d_a, size * sizeof(int));
+  cudaMalloc(&d_b, size * sizeof(int));
+  cudaMalloc(&d_c, size * sizeof(int));
 
-  cudaMalloc(&cudaA, sizeof(a));
-  cudaMalloc(&cudaB, sizeof(b));
-  cudaMalloc(&cudaC, sizeof(c));
+  cudaMemcpy(d_a, h_a, size * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b, h_b, size * sizeof(int), cudaMemcpyHostToDevice);
 
-  cudaMemcpy(cudaA, a, sizeof(a), cudaMemcpyHostToDevice);
-  cudaMemcpy(cudaB, b, sizeof(b), cudaMemcpyHostToDevice);
-  cudaMemcpy(cudaC, c, sizeof(c), cudaMemcpyHostToDevice);
+  int threadsPerBlock = 256;
+  int blocksPerGrid = (size + threadsPerBlock - 1) / threadsPerBlock;
+  vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, size);
 
-  vectorAdd<<<1, ARR_LEN(c)>>>(cudaA, cudaB, cudaC);
+  cudaMemcpy(h_c, d_c, size * sizeof(int), cudaMemcpyDeviceToHost);
 
-  cudaMemcpy(c, cudaC, sizeof(c), cudaMemcpyDeviceToHost);
-
-  for (const int i : c) {
-    printf("%d ", i);
-  }
-  printf("\n");
-
-  return 0;
+  cudaFree(d_a);
+  cudaFree(d_b);
+  cudaFree(d_c);
 }
