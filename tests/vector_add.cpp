@@ -20,7 +20,7 @@ inline void computeExpected(
 
 TEST(VectorAddTest, Correctness)
 {
-  const int size = 1000;
+  constexpr int size = 1000;
   std::vector<int> a(size), b(size), c(size), expected(size);
 
   initVectors(a, b, size);
@@ -29,21 +29,21 @@ TEST(VectorAddTest, Correctness)
   vectorAddHost(a.data(), b.data(), c.data(), size);
 
   for (int i = 0; i < size; ++i) {
-    EXPECT_EQ(c[i], expected[i]);
+    ASSERT_EQ(c[i], expected[i]);
   }
 }
 
 TEST(VectorAddTest, EndToEnd)
 {
-  const int size = 1000000;
+  constexpr int size = 1000000;
   std::vector<int> a(size), b(size), c(size);
 
   initVectors(a, b, size);
 
-  CudaTimer timer;
+  const CudaTimer timer;
   timer.start();
   vectorAddHost(a.data(), b.data(), c.data(), size);
-  float time = timer.stop();
+  const float time = timer.stop();
 
   std::cout << "End-to-end time: " << time << " ms" << std::endl;
   std::cout << "Throughput: " << (size / (time / 1000.0f)) / 1e6 << " Mops/s"
@@ -64,7 +64,7 @@ inline void computeExpected(
     std::vector<int>& expected,
     const std::vector<int>& a,
     const std::vector<int>& b,
-    int size)
+    const int size)
 {
   for (int i = 0; i < size; ++i) {
     expected[i] = a[i] + b[i];

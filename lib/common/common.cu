@@ -3,29 +3,36 @@
 //
 
 #include "common.h"
+#include <cuda_runtime.h>
+#include <memory>
 
-#include <stdexcept>
-
-CudaTimer::CudaTimer()
+struct CudaTimer::Impl
 {
-  cudaEventCreate(&start_);
-  cudaEventCreate(&stop_);
+  cudaEvent_t start_, stop_;
+};
+
+CudaTimer::CudaTimer() : pImpl_(std::make_unique<Impl>())
+{
+  cudaEventCreate(&pImpl_->start_);
+  cudaEventCreate(&pImpl_->stop_);
 }
+
 CudaTimer::~CudaTimer()
 {
-  cudaEventDestroy(start_);
-  cudaEventDestroy(stop_);
+  cudaEventDestroy(pImpl_->start_);
+  cudaEventDestroy(pImpl_->stop_);
 }
 
 void CudaTimer::start() const
 {
-  cudaEventRecord(start_);
+  cudaEventRecord(pImpl_->start_);
 }
+
 float CudaTimer::stop() const
 {
-  cudaEventRecord(stop_);
-  cudaEventSynchronize(stop_);
+  cudaEventRecord(pImpl_->stop_);
+  cudaEventSynchronize(pImpl_->stop_);
   float ms = 0.0f;
-  cudaEventElapsedTime(&ms, start_, stop_);
+  cudaEventElapsedTime(&ms, pImpl_->start_, pImpl_->stop_);
   return ms;
 }
