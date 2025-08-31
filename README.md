@@ -2,14 +2,23 @@
 
 A collection of high-performance CUDA kernels for parallel computing tasks. I'm writing these as I learn CUDA.
 
-## Prerequisites
+## Kernels
 
-- **CUDA Toolkit**: Version 12.0 or later 
+| kernel     | time             | reference        |
+|------------|------------------|------------------|
+| vector add | 0.087 ± 0.039 ms | 0.052 ± 0.001 ms |
+
+Measured on my RTX 2060 discrete GPU.
+
+## Building the Project
+
+Prerequisites:
+
+- **CUDA Toolkit**: Version 12.0 or later
 - **CMake**: Version 4.0 or later
 - **C++ Compiler**: GCC 11+ or Clang 14+ with C++23 support
 - **NVIDIA GPU**: With compute capability 7.5 or higher
 
-## Building the Project
 
 1. **Clone the repository**:
    ```bash
@@ -18,6 +27,7 @@ A collection of high-performance CUDA kernels for parallel computing tasks. I'm 
    ```
 
 If you forgot the `--recursive` flag, run this to fetch submodules:
+
    ```bash
    git submodule update --init --recursive
    ```
@@ -38,6 +48,7 @@ If you forgot the `--recursive` flag, run this to fetch submodules:
    ```
 
 Afterwards you can run the tests:
+
 ```bash
 ./tests/tests
 ```
