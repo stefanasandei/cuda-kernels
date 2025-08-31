@@ -5,18 +5,13 @@
 #ifndef CUDA_KERNELS_COMMON_H
 #define CUDA_KERNELS_COMMON_H
 
+#include <algorithm>
 #include <memory>
+#include <numeric>
+#include <print>
+#include <vector>
 
-class CudaTimer
-{
-public:
-  CudaTimer();
-  ~CudaTimer();
-  void start() const;
-  [[nodiscard]] float stop() const; // returns elapsed ms
-private:
-  struct Impl; // has cuda specific members
-  std::unique_ptr<Impl> pImpl_;
-};
+#include "benchmark.h"
+#include "cuda_timer.h"
 
 #endif // CUDA_KERNELS_COMMON_H

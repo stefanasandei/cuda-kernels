@@ -1,3 +1,5 @@
+#include <common/common.h>
+
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
@@ -9,7 +11,12 @@ __global__ void vectorAdd(int* a, int* b, int* c, int size)
   }
 }
 
-void vectorAddHost(const int* h_a, const int* h_b, int* h_c, int size)
+void vectorAddHost(
+    const int* h_a,
+    const int* h_b,
+    int* h_c,
+    int size,
+    const std::unique_ptr<CudaTimer>& timer)
 {
   int* d_a = nullptr;
   int* d_b = nullptr;
@@ -24,7 +31,14 @@ void vectorAddHost(const int* h_a, const int* h_b, int* h_c, int size)
 
   int threadsPerBlock = 256;
   int blocksPerGrid = (size + threadsPerBlock - 1) / threadsPerBlock;
+
+  if (timer)
+    timer->start();
   vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, size);
+  if (timer)
+    timer->stop();
+  else
+    cudaDeviceSynchronize();
 
   cudaMemcpy(h_c, d_c, size * sizeof(int), cudaMemcpyDeviceToHost);
 

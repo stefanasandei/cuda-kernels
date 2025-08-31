@@ -2,12 +2,10 @@
 // Created by stefan on 8/31/25.
 //
 
-#include <numeric>
-
 #include <gtest/gtest.h>
 
 #include <common/common.h>
-#include <vector_add/vector_add.h>
+#include <kernels.h>
 
 inline void initVectors(std::vector<int>& a, std::vector<int>& b, int size);
 inline void computeExpected(
@@ -26,28 +24,37 @@ TEST(VectorAddTest, Correctness)
   initVectors(a, b, size);
   computeExpected(expected, a, b, size);
 
-  vectorAddHost(a.data(), b.data(), c.data(), size);
+  vectorAddHost(a.data(), b.data(), c.data(), size, nullptr);
 
   for (int i = 0; i < size; ++i) {
     ASSERT_EQ(c[i], expected[i]);
   }
 }
 
-TEST(VectorAddTest, EndToEnd)
+TEST(VectorAddTest, MiniBenchmark)
 {
   constexpr int size = 1000000;
+  constexpr int N_TRIALS = 10;
+
   std::vector<int> a(size), b(size), c(size);
 
   initVectors(a, b, size);
 
-  const CudaTimer timer;
-  timer.start();
-  vectorAddHost(a.data(), b.data(), c.data(), size);
-  const float time = timer.stop();
+  // warm-up
+  vectorAddHost(a.data(), b.data(), c.data(), size, nullptr);
 
-  std::cout << "End-to-end time: " << time << " ms" << std::endl;
-  std::cout << "Throughput: " << (size / (time / 1000.0f)) / 1e6 << " Mops/s"
-            << std::endl;
+  const auto timer = std::make_unique<CudaTimer>();
+  std::vector<float> times;
+
+  for (int i = 0; i < N_TRIALS; i++) {
+    vectorAddHost(a.data(), b.data(), c.data(), size, timer);
+    times.push_back(timer->GetMS());
+  }
+
+  const auto mean = GetMean(times);
+  const auto std = GetStd(times);
+  std::print("Time: {:.3f} ± {:.3f} ms\n", mean, std);
+  // std::print("Throughput: {} Mops/s\n", (size / (mean / 1000.0f)) / 1e6);
 
   EXPECT_EQ(c[0], a[0] + b[0]);
 }
