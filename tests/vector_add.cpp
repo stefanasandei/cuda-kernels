@@ -34,17 +34,10 @@ TEST(VectorAddTest, Correctness)
 TEST(VectorAddTest, MiniBenchmark)
 {
   constexpr int size = 1000000;
-  constexpr int N_TRIALS = 10;
+  auto benchmarkPayload = BenchmarkPayload(2, 10);
 
   std::vector<int> a(size), b(size), c(size);
-
   initVectors(a, b, size);
-
-  auto benchmarkPayload = BenchmarkPayload{
-      .Timer = std::make_unique<CudaTimer>(),
-      .WarmupRuns = 2,
-      .NumTrials = 10,
-      .OutTimes = nullptr};
 
   vectorAddHost(a.data(), b.data(), c.data(), size, benchmarkPayload);
 

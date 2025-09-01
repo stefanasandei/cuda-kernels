@@ -12,7 +12,6 @@ void vectorAddHost(
     const int* h_b,
     int* h_c,
     int size,
-    std::optional<std::reference_wrapper<BenchmarkPayload>> benchmarkOpt
-    = std::nullopt);
+    BenchmarkOptional benchmarkOpt = std::nullopt);
 
 #endif
