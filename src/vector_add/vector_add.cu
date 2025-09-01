@@ -16,7 +16,7 @@ void vectorAddHost(
     const int* h_b,
     int* h_c,
     int size,
-    const std::unique_ptr<CudaTimer>& timer)
+    std::optional<std::reference_wrapper<BenchmarkPayload>> benchmarkOpt)
 {
   int* d_a = nullptr;
   int* d_b = nullptr;
@@ -32,13 +32,26 @@ void vectorAddHost(
   int threadsPerBlock = 256;
   int blocksPerGrid = (size + threadsPerBlock - 1) / threadsPerBlock;
 
-  if (timer)
-    timer->start();
-  vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, size);
-  if (timer)
-    timer->stop();
-  else
+  if (benchmarkOpt != std::nullopt) {
+    BenchmarkPayload& benchmark = benchmarkOpt.value().get();
+    benchmark.OutTimes = std::make_unique<std::vector<float>>();
+
+    for (int i = 0; i < benchmark.WarmupRuns; i++) {
+      vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, size);
+      cudaDeviceSynchronize();
+    }
+
+    for (int i = 0; i < benchmark.NumTrials; i++) {
+      benchmark.Timer->start();
+      vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, size);
+      benchmark.Timer->stop();
+
+      benchmark.OutTimes->push_back(benchmark.Timer->GetMS());
+    }
+  } else {
+    vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, size);
     cudaDeviceSynchronize();
+  }
 
   cudaMemcpy(h_c, d_c, size * sizeof(int), cudaMemcpyDeviceToHost);
 

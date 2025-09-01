@@ -24,7 +24,7 @@ TEST(VectorAddTest, Correctness)
   initVectors(a, b, size);
   computeExpected(expected, a, b, size);
 
-  vectorAddHost(a.data(), b.data(), c.data(), size, nullptr);
+  vectorAddHost(a.data(), b.data(), c.data(), size);
 
   for (int i = 0; i < size; ++i) {
     ASSERT_EQ(c[i], expected[i]);
@@ -40,19 +40,16 @@ TEST(VectorAddTest, MiniBenchmark)
 
   initVectors(a, b, size);
 
-  // warm-up
-  vectorAddHost(a.data(), b.data(), c.data(), size, nullptr);
+  auto benchmarkPayload = BenchmarkPayload{
+      .Timer = std::make_unique<CudaTimer>(),
+      .WarmupRuns = 2,
+      .NumTrials = 10,
+      .OutTimes = nullptr};
 
-  const auto timer = std::make_unique<CudaTimer>();
-  std::vector<float> times;
+  vectorAddHost(a.data(), b.data(), c.data(), size, benchmarkPayload);
 
-  for (int i = 0; i < N_TRIALS; i++) {
-    vectorAddHost(a.data(), b.data(), c.data(), size, timer);
-    times.push_back(timer->GetMS());
-  }
-
-  const auto mean = GetMean(times);
-  const auto std = GetStd(times);
+  const auto mean = GetMean(*benchmarkPayload.OutTimes);
+  const auto std = GetStd(*benchmarkPayload.OutTimes);
   std::print("Time: {:.3f} ± {:.3f} ms\n", mean, std);
   // std::print("Throughput: {} Mops/s\n", (size / (mean / 1000.0f)) / 1e6);
 

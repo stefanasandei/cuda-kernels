@@ -6,7 +6,7 @@ A collection of high-performance CUDA kernels for parallel computing tasks. I'm 
 
 | kernel     | time             | reference impl.  |
 |------------|------------------|------------------|
-| vector add | 0.087 ± 0.039 ms | 0.052 ± 0.001 ms |
+| vector add | 0.043 ± 0.001 ms | 0.052 ± 0.001 ms |
 
 Measured on my RTX 2060 discrete GPU. Size of arrays found in tests (`./src/tests`), also same sizes between my kernels
 and the PyTorch/Triton ones.

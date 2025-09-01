@@ -3,8 +3,8 @@ import time
 import torch
 
 
-def add_vectors(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    return x + y
+def add_vectors(x: torch.Tensor, y: torch.Tensor, z: torch.Tensor):
+    torch.add(x, y, out=z)
 
 
 if __name__ == "__main__":
@@ -18,12 +18,13 @@ if __name__ == "__main__":
     num_trials = 10
     num_warmup_runs = 5
 
-    x_gpu = torch.randn(size, device=device)
-    y_gpu = torch.randn(size, device=device)
+    x = torch.randn(size, device=device)
+    y = torch.randn(size, device=device)
+    result = torch.zeros(size, device=device)
 
     # warm-up runs
     for _ in range(num_warmup_runs):
-        result_gpu = add_vectors(x_gpu, y_gpu)
+        add_vectors(x, y, result)
         torch.cuda.synchronize()
 
     times = []
@@ -32,7 +33,7 @@ if __name__ == "__main__":
         torch.cuda.synchronize()
         start_time = time.perf_counter()
 
-        result_gpu = add_vectors(x_gpu, y_gpu)
+        add_vectors(x, y, result)
 
         torch.cuda.synchronize()
         end_time = time.perf_counter()

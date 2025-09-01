@@ -5,11 +5,14 @@
 #ifndef CUDA_KERNELS_H
 #define CUDA_KERNELS_H
 
+struct BenchmarkPayload;
+
 void vectorAddHost(
     const int* h_a,
     const int* h_b,
     int* h_c,
     int size,
-    const std::unique_ptr<CudaTimer>& timer);
+    std::optional<std::reference_wrapper<BenchmarkPayload>> benchmarkOpt
+    = std::nullopt);
 
 #endif
